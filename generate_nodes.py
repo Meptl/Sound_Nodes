@@ -89,10 +89,6 @@ def generate_spectrogram(spect_bins):
         comparison.location = (0,50 - (i * 100))
         comparison.operation = 'EQUAL'
         comparison.hide = True
-        if i == 0:
-            comparison.operation = 'LESS_EQUAL'
-        elif i == spect_bins - 1:
-            comparison.operation = 'GREATER_EQUAL'
         comparison.inputs[3].default_value = i
         spectrogram.links.new(group_inputs.outputs[0], comparison.inputs[2])
 

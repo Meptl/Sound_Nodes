@@ -107,7 +107,8 @@ class RunAnalysis(bpy.types.Operator):
         wm.progress_update(90)
 
         # generate / refresh nodes
-        generate_sound_basic()
+        generate_sound_basic_geo()
+        generate_sound_basic_shader()
         generate_spectrogram(n_bins)
 
         wm.progress_end()

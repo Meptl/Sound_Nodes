@@ -12,47 +12,53 @@ def set_driver(node, path):
     var.targets[0].data_path = path
 
 
+def create_sound_basic_node_graph(sound_basic):
+    # create group outputs
+    group_outputs = sound_basic.nodes.new('NodeGroupOutput')
+    group_outputs.location = (300,0)
 
-def generate_sound_basic():
-    # check if group already exists
+    #loudness
+    loudness = sound_basic.nodes.new('ShaderNodeValue')
+    loudness.label = 'Loudness'
+    loudness.location = (-200,100)
+    set_driver(loudness, "sound_nodes[\"loudness\"]")
+
+    # connect
+    sound_basic.links.new(loudness.outputs[0], group_outputs.inputs['Loudness'])
+
+    # Frame driver. Forces reevaluation of the node.
+    frame = sound_basic.nodes.new('ShaderNodeValue')
+    frame.label = 'Frame'
+    frame.location = (-200,-200)
+    driver = frame.outputs[0].driver_add("default_value")
+    driver.driver.expression = "frame"
+
+
+
+def generate_sound_basic_geo():
     if "Sound Info" not in bpy.data.node_groups:
         sound_basic = bpy.data.node_groups.new("Sound Info", "GeometryNodeTree")
-
-        # create group outputs
-        group_outputs = sound_basic.nodes.new('NodeGroupOutput')
-        group_outputs.location = (300,0)
-
         sound_basic.interface.new_socket('Loudness', in_out='OUTPUT', socket_type='NodeSocketFloat')
-
-        #loudness
-        loudness = sound_basic.nodes.new('ShaderNodeValue')
-        loudness.label = 'Loudness'
-        loudness.location = (-200,100)
-        set_driver(loudness, "sound_nodes[\"loudness\"]")
-
-        # connect
-        sound_basic.links.new(loudness.outputs[0], group_outputs.inputs['Loudness'])
-
-        # Frame driver. Forces reevaluation of the node.
-        frame = sound_basic.nodes.new('ShaderNodeValue')
-        frame.label = 'Frame'
-        frame.location = (-200,-200)
-        driver = frame.outputs[0].driver_add("default_value")
-        driver.driver.expression = "frame"
     else:
-        # refresh drivers
         sound_basic = bpy.data.node_groups["Sound Info"]
-
-        # delete old drivers
         sound_basic.animation_data_clear()
-
-        # add new drivers
         for node in sound_basic.nodes:
-            if node.label == "Loudness":
-                set_driver(node, "sound_nodes[\"loudness\"]")
-            elif node.label == "Frame":
-                driver = node.outputs[0].driver_add("default_value")
-                driver.driver.expression = "frame"
+            sound_basic.nodes.remove(node)
+
+    create_sound_basic_node_graph(sound_basic)
+
+
+def generate_sound_basic_shader():
+    if "Sound Info Shader" not in bpy.data.node_groups:
+        sound_basic = bpy.data.node_groups.new("Sound Info Shader", "ShaderNodeTree")
+        sound_basic.interface.new_socket('Loudness', in_out='OUTPUT', socket_type='NodeSocketFloat')
+    else:
+        sound_basic = bpy.data.node_groups["Sound Info Shader"]
+        sound_basic.animation_data_clear()
+        for node in sound_basic.nodes:
+            sound_basic.nodes.remove(node)
+
+    create_sound_basic_node_graph(sound_basic)
 
 
 def generate_spectrogram(spect_bins):

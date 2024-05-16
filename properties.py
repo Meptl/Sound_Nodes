@@ -17,13 +17,13 @@ class SoundNodesPropertyGroup(bpy.types.PropertyGroup):
     spectrogram1: bpy.props.FloatVectorProperty(
         description="Spectrogram of audio",
         size=32,
-        default=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        default=(0.0,)*32
     )
 
     spectrogram2: bpy.props.FloatVectorProperty(
         description="Spectrogram of audio",
         size=32,
-        default=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        default=(0.0,)*32
     )
 
     spect_bins: bpy.props.IntProperty(

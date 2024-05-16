@@ -12,7 +12,8 @@ def get_music_spectrogram(y, sr, d, n_bins, max_freq=0):
         freq = None
     else:
         freq = max_freq
-    # spectrogram - n_bins*X 2D array
+    # Returns 2D array n_bins*X.
+    # where X is the amplitude per time slice.
     return librosa.feature.melspectrogram(y=y, sr=sr, hop_length=int(sr/d), n_mels=n_bins, fmax=freq)
 
 
@@ -95,10 +96,12 @@ class RunAnalysis(bpy.types.Operator):
 
         for i in range(spectrogram.shape[1]):
             array = spectrogram[:, i]
-            array = np.pad(array, (0, 32-n_bins), mode='constant', constant_values=(0, 0))
+            array = np.pad(array, (0, 64-n_bins), mode='constant', constant_values=(0, 0))
 
-            properties.spectrogram1 = array
-            properties.keyframe_insert(data_path="spectrogram1", frame=i*properties.spect_smoothing+offset, group="Sound Nodes")
+            properties.spectrogram1 = array[:32]
+            properties.keyframe_insert(data_path='spectrogram1', frame=i*properties.spect_smoothing+offset, group="Sound Nodes")
+            properties.spectrogram2 = array[32:]
+            properties.keyframe_insert(data_path='spectrogram2', frame=i*properties.spect_smoothing+offset, group="Sound Nodes")
 
 
         wm.progress_update(90)

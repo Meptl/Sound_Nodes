@@ -13,7 +13,7 @@ class LoadAudio(bpy.types.Operator, ImportHelper):
         default='*.wav;*.mp3;*.ogg;*.flac',
         options={'HIDDEN'}
     )
-    
+
     def execute(self, context):
         filename = str(os.path.basename(self.filepath))
 
@@ -23,7 +23,7 @@ class LoadAudio(bpy.types.Operator, ImportHelper):
         # add audio to scene
         if not context.scene.sequence_editor:
             context.scene.sequence_editor_create()
-        
+
         # delete all sequences that end with "- sound nodes"
         for seq in context.scene.sequence_editor.sequences:
             if seq.name.endswith("- sound nodes"):

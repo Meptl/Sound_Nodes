@@ -64,12 +64,12 @@ class RunAnalysis(bpy.types.Operator):
             end_frame = context.scene.frame_end
             y = y[int(start_frame*sr/fps):int((end_frame+0.5)*sr/fps)]
             offset = start_frame
-        
+
         wm.progress_update(10)
         spectrogram = get_music_spectrogram(y, sr, fps/properties.spect_smoothing, properties.spect_bins)
         wm.progress_update(20)
         loudness = get_music_spectrogram(y, sr, fps/properties.loudness_smoothing, 1)
-        wm.progress_update(40)       
+        wm.progress_update(40)
 
         clean_animation(context)
 
@@ -101,9 +101,7 @@ class RunAnalysis(bpy.types.Operator):
 
         # generate / refresh nodes
         generate_sound_basic()
-        generate_chromagram()
         generate_spectrogram(n_bins)
-        generate_spectrogram_v2(n_bins)
 
         wm.progress_end()
 

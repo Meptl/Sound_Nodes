@@ -21,10 +21,8 @@ def generate_sound_basic():
         # create group outputs
         group_outputs = sound_basic.nodes.new('NodeGroupOutput')
         group_outputs.location = (300,0)
-        sound_basic.outputs.new('NodeSocketFloat','Loudness')
-        sound_basic.outputs.new('NodeSocketFloat',' ̶A̶v̶e̶r̶a̶g̶e̶ ̶F̶r̶e̶q̶u̶e̶n̶c̶y̶ ̶')
-        sound_basic.outputs.new('NodeSocketFloat',' ̶B̶e̶a̶t̶s̶ ̶R̶a̶w̶ ̶')
-        sound_basic.outputs.new('NodeSocketFloat',' ̶B̶e̶a̶t̶s̶ ̶T̶r̶i̶a̶n̶g̶l̶e̶ ̶')
+
+        sound_basic.interface.new_socket('Loudness', in_out='OUTPUT', socket_type='NodeSocketFloat')
 
         #loudness
         loudness = sound_basic.nodes.new('ShaderNodeValue')
@@ -32,17 +30,16 @@ def generate_sound_basic():
         loudness.location = (-200,100)
         set_driver(loudness, "sound_nodes[\"loudness\"]")
 
-        # frame
+        # connect
+        sound_basic.links.new(loudness.outputs[0], group_outputs.inputs['Loudness'])
+
+        # Frame driver. Forces reevaluation of the node.
         frame = sound_basic.nodes.new('ShaderNodeValue')
         frame.label = 'Frame'
         frame.location = (-200,-200)
         driver = frame.outputs[0].driver_add("default_value")
         driver.driver.expression = "frame"
-
-        # connect
-        sound_basic.links.new(loudness.outputs[0], group_outputs.inputs['Loudness'])
-
-    else: 
+    else:
         # refresh drivers
         sound_basic = bpy.data.node_groups["Sound Info"]
 
@@ -58,49 +55,33 @@ def generate_sound_basic():
                 driver.driver.expression = "frame"
 
 
-
-def generate_chromagram():
-    tones = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']   
-
-    # check if group does not already exists
-    if "Chromagram" not in bpy.data.node_groups:
-        chromagram = bpy.data.node_groups.new(" ̶C̶h̶r̶o̶m̶a̶g̶r̶a̶m̶ ̶", "GeometryNodeTree")
-
-        # create group outputs
-        group_outputs = chromagram.nodes.new('NodeGroupOutput')
-        group_outputs.location = (300,0)
-
-        i = 0
-        for tone in tones:
-            chromagram.outputs.new('NodeSocketFloat',tone)
-            i += 1
-
-
-
 def generate_spectrogram(spect_bins):
     # check if group already exists
     if "Spectrogram" not in bpy.data.node_groups:
         spectrogram = bpy.data.node_groups.new("Spectrogram", "GeometryNodeTree")
 
-        # create group outputs
         group_outputs = spectrogram.nodes.new('NodeGroupOutput')
-        group_outputs.location = (300,0)
+        group_outputs.location = (520,-400)
 
-        for i in range(spect_bins):
-            spectrogram.outputs.new('NodeSocketFloat', str(i))
+        group_inputs = spectrogram.nodes.new('NodeGroupInput')
+        group_inputs.location = (-170,200)
 
+        spectrogram.interface.new_socket('index', in_out='INPUT', socket_type='NodeSocketInt')
+        spectrogram.interface.new_socket('value', in_out='OUTPUT', socket_type='NodeSocketFloat')
     else:
         spectrogram = bpy.data.node_groups["Spectrogram"]
         group_outputs = spectrogram.nodes["Group Output"]
+        group_inputs = spectrogram.nodes["Group Input"]
 
         # delete all nodes except group inputs and outputs
         for node in spectrogram.nodes:
-            if node.type != "GROUP_OUTPUT":
+            if node.type != "GROUP_OUTPUT" or node.type != "GROUP_INPUT":
                 spectrogram.nodes.remove(node)
 
-    
+
+    accumulator = None
     for i in range(0, spect_bins):
-        # node
+        # Spectrogram Driver node
         node = spectrogram.nodes.new('ShaderNodeValue')
         node.label = str(i)
         node.location = (-200,100 - (i * 100))
@@ -109,28 +90,44 @@ def generate_spectrogram(spect_bins):
         else:
             set_driver(node, "sound_nodes[\"spectrogram2\"][" + str(i-32) + "]")
 
-        # connect
-        spectrogram.links.new(node.outputs[0], group_outputs.inputs[str(i)])
+        # Compare node to index
+        comparison = spectrogram.nodes.new('FunctionNodeCompare')
+        comparison.data_type = 'INT'
+        comparison.location = (0,50 - (i * 100))
+        comparison.operation = 'EQUAL'
+        comparison.hide = True
+        if i == 0:
+            comparison.operation = 'LESS_EQUAL'
+        elif i == spect_bins - 1:
+            comparison.operation = 'GREATER_EQUAL'
+        comparison.inputs[3].default_value = i
+        spectrogram.links.new(group_inputs.outputs[0], comparison.inputs[2])
 
-    # frame
+        # Activate or deactivate driver based on comparison
+        activator = spectrogram.nodes.new('ShaderNodeMath')
+        activator.operation = 'MULTIPLY'
+        activator.location = (180,100 - (i * 100))
+        activator.hide = True
+        spectrogram.links.new(node.outputs[0], activator.inputs[0])
+        spectrogram.links.new(comparison.outputs[0], activator.inputs[1])
+
+        if accumulator is None:
+            accumulator = activator
+        else:
+            old_accum = accumulator
+            accumulator = spectrogram.nodes.new('ShaderNodeMath')
+            accumulator.operation = 'ADD'
+            accumulator.location = (360,100 - (i * 100))
+            accumulator.hide = True
+            spectrogram.links.new(old_accum.outputs[0], accumulator.inputs[0])
+            spectrogram.links.new(activator.outputs[0], accumulator.inputs[1])
+
+    # Link the final accum to output
+    spectrogram.links.new(accumulator.outputs[0], group_outputs.inputs[0])
+
+    # Frame driver. Forces reevaluation of the node.
     frame = spectrogram.nodes.new('ShaderNodeValue')
     frame.label = 'Frame'
     frame.location = (-400,-200)
     driver = frame.outputs[0].driver_add("default_value")
     driver.driver.expression = "frame"
-
-
-def generate_spectrogram_v2(spect_bins):
-    # check if group already exists
-    if "Spectrogram Separate" not in bpy.data.node_groups:
-        spectrogram = bpy.data.node_groups.new(" ̶S̶p̶e̶c̶t̶r̶o̶g̶r̶a̶m̶ ̶S̶e̶p̶a̶r̶a̶t̶e̶ ̶", "GeometryNodeTree")
-
-        # create group inputs
-        group_inputs = spectrogram.nodes.new('NodeGroupInput')
-        group_inputs.location = (-600,0)
-        spectrogram.inputs.new('NodeSocketInt','Index')
-
-        # create group outputs
-        group_outputs = spectrogram.nodes.new('NodeGroupOutput')
-        group_outputs.location = (300,0)
-        spectrogram.outputs.new('NodeSocketFloat','Value')

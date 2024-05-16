@@ -59,25 +59,18 @@ def generate_spectrogram(spect_bins):
     # check if group already exists
     if "Spectrogram" not in bpy.data.node_groups:
         spectrogram = bpy.data.node_groups.new("Spectrogram", "GeometryNodeTree")
-
-        group_outputs = spectrogram.nodes.new('NodeGroupOutput')
-        group_outputs.location = (520,-400)
-
-        group_inputs = spectrogram.nodes.new('NodeGroupInput')
-        group_inputs.location = (-170,200)
-
         spectrogram.interface.new_socket('index', in_out='INPUT', socket_type='NodeSocketInt')
         spectrogram.interface.new_socket('value', in_out='OUTPUT', socket_type='NodeSocketFloat')
     else:
         spectrogram = bpy.data.node_groups["Spectrogram"]
-        group_outputs = spectrogram.nodes["Group Output"]
-        group_inputs = spectrogram.nodes["Group Input"]
-
-        # delete all nodes except group inputs and outputs
         for node in spectrogram.nodes:
-            if node.type != "GROUP_OUTPUT" or node.type != "GROUP_INPUT":
-                spectrogram.nodes.remove(node)
+            spectrogram.nodes.remove(node)
 
+    group_outputs = spectrogram.nodes.new('NodeGroupOutput')
+    group_outputs.location = (520,-400)
+
+    group_inputs = spectrogram.nodes.new('NodeGroupInput')
+    group_inputs.location = (-170,200)
 
     accumulator = None
     for i in range(0, spect_bins):

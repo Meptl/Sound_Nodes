@@ -7,9 +7,13 @@ import time
 # sr - sample rate
 # d - number of keys per second
 
-def get_music_spectrogram(y, sr, d, n_bins):
+def get_music_spectrogram(y, sr, d, n_bins, max_freq=0):
+    if max_freq == 0:
+        freq = None
+    else:
+        freq = max_freq
     # spectrogram - n_bins*X 2D array
-    return librosa.feature.melspectrogram(y=y, sr=sr, hop_length=int(sr/d), n_mels=n_bins)
+    return librosa.feature.melspectrogram(y=y, sr=sr, hop_length=int(sr/d), n_mels=n_bins, fmax=freq)
 
 
 def clean_animation(context):
@@ -66,7 +70,7 @@ class RunAnalysis(bpy.types.Operator):
             offset = start_frame
 
         wm.progress_update(10)
-        spectrogram = get_music_spectrogram(y, sr, fps/properties.spect_smoothing, properties.spect_bins)
+        spectrogram = get_music_spectrogram(y, sr, fps/properties.spect_smoothing, properties.spect_bins, properties.spect_max_freq)
         wm.progress_update(20)
         loudness = get_music_spectrogram(y, sr, fps/properties.loudness_smoothing, 1)
         wm.progress_update(40)

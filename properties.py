@@ -33,6 +33,13 @@ class SoundNodesPropertyGroup(bpy.types.PropertyGroup):
         max=64
     )
 
+    spect_max_freq: bpy.props.IntProperty(
+        description="Maximum frequency to analyze",
+        default=0,
+        min=0,
+        max=22000
+    )
+
     estimated_tempo: bpy.props.IntProperty(
         description="Estimated tempo of audio",
         default=120,

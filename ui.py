@@ -61,9 +61,10 @@ class SOUNDNODES_PT_AdvancedPanel(bpy.types.Panel):
         box4 = layout.box()
         box4.label(text="Spectrogram:")
         box4.prop(propeties, "spect_bins", text="Number of bins")
+        box4.prop(propeties, "spect_max_freq", text="Maximum frequency to analyze")
         box4.prop(propeties, "spect_smoothing", text="Smoothing factor")
         box4.prop(propeties, "spectrogram_normalization", text="Normalize")
-        box4.enabled = False
+        box4.enabled = True
 
         box5 = layout.box()
         box5.label(text="Chromagram:")

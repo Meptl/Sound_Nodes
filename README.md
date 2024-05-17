@@ -1,3 +1,8 @@
+Personal modifications on Sound Nodes Lite.
+
+* Fixes for Blender 4.1
+* Better index based Spectrogram node
+* Loudness Shader Node
 
 <img width="600" alt="detectAsset 10@2x bak (Custom)" src="https://user-images.githubusercontent.com/18052453/218277109-d2e4d4c2-13d3-465e-a575-21c8d38d9281.png">
 
